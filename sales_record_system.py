@@ -12,13 +12,17 @@ BG          = "#0f1117"
 SURFACE     = "#1a1d27"
 CARD        = "#22263a"
 ACCENT      = "#f0c040"
+ACCENT3     = "#58CCED"
 ACCENT2     = "#e05c5c"
 TEXT        = "#e8eaf0"
 TEXT_MUTED  = "#7a7f9a"
 BORDER      = "#2e3349"
 SUCCESS     = "#4ecca3"
 ROW_ALT     = "#1e2235"
+WHITE       = "#ffffff"
 
+FONT_SALES  = ("Helvetica", 11)
+FONT_TITLE  = ("Helvetica", 22)
 FONT_HEAD   = ("Georgia", 22, "bold")
 FONT_SUB    = ("Georgia", 11)
 FONT_LABEL  = ("Courier", 9, "bold")
@@ -47,7 +51,7 @@ def next_id(records):
 def fmt_php(val):
     return f"₱{float(val):,.2f}"
 
-# ── Styled widgets ────────────────────────────────────────────────────────────
+# Styled widgets
 def styled_entry(parent, width=22):
     e = tk.Entry(parent, font=FONT_INPUT, bg=CARD, fg=TEXT,
                  insertbackground=ACCENT, relief="flat",
@@ -65,7 +69,7 @@ def styled_btn(parent, text, command, color=ACCENT, fg=BG, width=14):
     b.bind("<Leave>", lambda e: b.config(bg=color))
     return b
 
-# ── Main App ──────────────────────────────────────────────────────────────────
+# Main App
 class SalesApp(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -73,6 +77,8 @@ class SalesApp(tk.Tk):
         self.configure(bg=BG)
         self.geometry("1180x720")
         self.minsize(900, 600)
+        icon = tk.PhotoImage(file="logo.png")
+        self.iconphoto(True, icon)
         self.resizable(True, True)
 
         self.records = load_data()
@@ -84,13 +90,13 @@ class SalesApp(tk.Tk):
         self.refresh_table()
         self.refresh_stats()
 
-    # ── Layout ─────────────────────────────────────────────────────────────
+    # Layout
     def _build_ui(self):
         # ── Header ──
         hdr = tk.Frame(self, bg=SURFACE, pady=16)
         hdr.pack(fill="x")
 
-        logo_img = Image.open("github.png")
+        logo_img = Image.open("logo2.png")
         logo_img = logo_img.resize((32, 32))  # adjust size
         self.logo = ImageTk.PhotoImage(logo_img)
         tk.Label(
@@ -100,10 +106,10 @@ class SalesApp(tk.Tk):
         ).pack(side="left", padx=(28, 8))
 
 
-        tk.Label(hdr, text="SALES RECORD SYSTEM", font=FONT_HEAD,
-                 bg=SURFACE, fg=ACCENT).pack(side="left", padx=5)
-        tk.Label(hdr, text="track · analyze · export",
-                 font=FONT_SUB, bg=SURFACE, fg=TEXT_MUTED).pack(side="left", padx=4)
+        tk.Label(hdr, text="SALES LEDGER", font=FONT_TITLE,
+                 bg=SURFACE, fg=WHITE).pack(side="left", padx=5)
+        tk.Label(hdr, text="SALES RECORD SYSTEM",
+                 font=FONT_SALES, bg=SURFACE, fg=TEXT_MUTED).pack(side="left", padx=4)
 
         # ── Body split ──
         body = tk.Frame(self, bg=BG)
@@ -147,10 +153,10 @@ class SalesApp(tk.Tk):
                         foreground=TEXT, font=FONT_TABLE,
                         rowheight=28, borderwidth=0)
         style.configure("Sales.Treeview.Heading",
-                        background=CARD, foreground=ACCENT,
+                        background=CARD, foreground=ACCENT3,
                         font=FONT_LABEL, relief="flat", borderwidth=0)
         style.map("Sales.Treeview",
-                  background=[("selected", ACCENT)],
+                  background=[("selected", ACCENT3)],
                   foreground=[("selected", BG)])
         style.layout("Sales.Treeview", [("Sales.Treeview.treearea", {"sticky": "nswe"})])
 
@@ -230,7 +236,7 @@ class SalesApp(tk.Tk):
         lbl.pack(anchor="w")
         return lbl
 
-    # ── Table ops ──────────────────────────────────────────────────────────
+    # Table ops
     def refresh_table(self, *_):
         query = self._search_var.get().lower()
         self.tree.delete(*self.tree.get_children())
@@ -385,13 +391,13 @@ class SalesApp(tk.Tk):
         self.after(2500, lambda: self._status_lbl.pack_forget())
 
 
-# ── Seed demo data if empty ────────────────────────────────────────────────────
+# Seed demo data if empty
 def seed_demo():
     if os.path.exists(DATA_FILE):
         return
     demo = [
-        {"id":1,"date":"2025-01-10","customer":"Leon James Tan","product":"Office Chair","category":"Furniture","qty":2,"price":4500},
-        {"id":2,"date":"2025-01-12","customer":"Aaron Gregorio Tamayo","product":"Mechanical Keyboard","category":"Electronics","qty":3,"price":1800},
+        {"id":1,"date":"2025-01-10","customer":"Leon Tan","product":"Office Chair","category":"Furniture","qty":2,"price":4500},
+        {"id":2,"date":"2025-01-12","customer":"Aaron Tamayo","product":"Mechanical Keyboard","category":"Electronics","qty":3,"price":1800},
         {"id":3,"date":"2025-01-15","customer":"Val Medalla","product":"LED Monitor 24\"","category":"Electronics","qty":1,"price":8500},
         {"id":4,"date":"2025-02-01","customer":"Steve Ligason","product":"Notebook A4 (pack)","category":"Supplies","qty":10,"price":250},
         {"id":5,"date":"2025-02-14","customer":"Mark Daniel Abellar","product":"Standing Desk","category":"Furniture","qty":1,"price":12000},
