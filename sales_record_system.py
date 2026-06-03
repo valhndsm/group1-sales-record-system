@@ -7,6 +7,15 @@ import os
 from datetime import datetime
 from collections import defaultdict
 
+def resource_path(path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, path)
+
+
 # Styles palletes
 BG          = "#0f1117"
 SURFACE     = "#1a1d27"
@@ -32,6 +41,9 @@ FONT_TABLE  = ("Courier", 10)
 FONT_STAT   = ("Georgia", 26, "bold")
 
 DATA_FILE   = os.path.join(os.path.dirname(__file__), "sales_data.json")
+
+
+
 
 # Date Layer
 def load_data():
@@ -77,7 +89,7 @@ class SalesApp(tk.Tk):
         self.configure(bg=BG)
         self.geometry("1180x720")
         self.minsize(900, 600)
-        icon = tk.PhotoImage(file="logo.png")
+        icon = tk.PhotoImage(file=resource_path("logo.png"))
         self.iconphoto(True, icon)
         self.resizable(True, True)
 
@@ -96,7 +108,7 @@ class SalesApp(tk.Tk):
         hdr = tk.Frame(self, bg=SURFACE, pady=16)
         hdr.pack(fill="x")
 
-        logo_img = Image.open("logo2.png")
+        logo_img = Image.open(resource_path("logo1.png"))
         logo_img = logo_img.resize((32, 32))  # adjust size
         self.logo = ImageTk.PhotoImage(logo_img)
         tk.Label(
@@ -396,8 +408,8 @@ def seed_demo():
     if os.path.exists(DATA_FILE):
         return
     demo = [
-        {"id":1,"date":"2025-01-10","customer":"Leon Tan","product":"Office Chair","category":"Furniture","qty":2,"price":4500},
-        {"id":2,"date":"2025-01-12","customer":"Aaron Tamayo","product":"Mechanical Keyboard","category":"Electronics","qty":3,"price":1800},
+        {"id":1,"date":"2025-01-10","customer":"Leon James Tan","product":"Office Chair","category":"Furniture","qty":2,"price":4500},
+        {"id":2,"date":"2025-01-12","customer":"Aaron Gregorio Tamayo","product":"Mechanical Keyboard","category":"Electronics","qty":3,"price":1800},
         {"id":3,"date":"2025-01-15","customer":"Val Medalla","product":"LED Monitor 24\"","category":"Electronics","qty":1,"price":8500},
         {"id":4,"date":"2025-02-01","customer":"Steve Ligason","product":"Notebook A4 (pack)","category":"Supplies","qty":10,"price":250},
         {"id":5,"date":"2025-02-14","customer":"Mark Daniel Abellar","product":"Standing Desk","category":"Furniture","qty":1,"price":12000},
