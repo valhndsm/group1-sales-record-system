@@ -19,12 +19,7 @@ from .constants import (
 # ── Resource Path ─────────────────────────────────────
 
 def resource_path(relative: str) -> str:
-    """
-    Resolve a file path that works both in development
-    and inside a PyInstaller-bundled executable.
-    Resolves relative to the project root (where main.py lives),
-    not the current working directory.
-    """
+  
     try:
         base = sys._MEIPASS          # type: ignore[attr-defined]
     except AttributeError:
