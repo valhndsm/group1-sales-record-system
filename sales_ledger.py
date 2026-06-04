@@ -1,28 +1,68 @@
+"""
+=========================================================
+SALES LEDGER - SALES RECORD SYSTEM
+=========================================================
+
+Authors: 
+Leon James Tan (Project Manager) 
+Val Medalla (Software Developer)
+Mark Daniel Abellar (Software Developer)  
+Aaron Gregorio Tamayo (Client) 
+Steve Ligson (Quality Assurance Specialist)
+
+Language    : Python
+GUI Library : Tkinter
+Database    : JSON File Storage
+Charts      : Matplotlib
+Version     : 1.0
+
+Description:
+A desktop-based Sales Record System used to record,
+manage, search, update, delete, and analyze sales
+transactions. The application provides data visualization
+through charts and supports exporting records to CSV files.
+
+Features:
+- Add sales records
+- Update existing records
+- Delete records
+- Search and filter records
+- Revenue analytics charts
+- Category revenue distribution
+- Top products analysis
+- CSV export functionality
+- Local JSON database storage
+
+Storage Location:
+%APPDATA%/SalesLedger/sales_data.json
+
+=========================================================
+"""
+
+# Import Required Libraries
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import ttk, messagebox, filedialog
 import json
 import csv
 import os
+import sys
 from datetime import datetime
 from collections import defaultdict
 from pathlib import Path
 
+# Import Matplotlib for Data Visualization
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-def resource_path(path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, path)
-
-
-# Styles palettes
+'''
+Application Styling and Theme Configuration:
+Defines colors, fonts, and visual appearance of the system.
+'''
+# Color Palette
 BG          = "#0f1117"
 SURFACE     = "#1a1d27"
 CARD        = "#22263a"
@@ -36,6 +76,7 @@ SUCCESS     = "#4ecca3"
 ROW_ALT     = "#1e2235"
 WHITE       = "#ffffff"
 
+# Font Definitions
 FONT_SALES  = ("Segoe UI", 11)
 FONT_TITLE  = ("Bahnschrift", 22, "bold")
 FONT_LABEL  = ("Bahnschrift", 9, "bold")
@@ -44,12 +85,24 @@ FONT_BTN    = ("Bahnschrift", 10, "bold")
 FONT_TABLE  = ("Bahnschrift", 10)
 FONT_STAT   = ("Bahnschrift", 24, "bold")
 
+'''
+--------------------------------------------------------
+Local Database Configuration					 
+--------------------------------------------------------
+The application stores all sales records inside a JSON
+file located in the user's AppData folder.
+-------------------------------------------------------- 
+'''
+
 APP_DIR = Path(os.getenv("APPDATA")) / "SalesLedger"
 APP_DIR.mkdir(exist_ok=True)
 
 DATA_FILE = APP_DIR / "sales_data.json"
 
-# ── Matplotlib theme ──
+'''
+Matplotlib Theme Settings:
+Applies the application's dark theme to all charts.
+'''
 plt.rcParams.update({
     "figure.facecolor":  BG,
     "axes.facecolor":    SURFACE,
@@ -74,25 +127,47 @@ plt.rcParams.update({
     "font.family":       "sans-serif",
 })
 
+'''
+Resource File Handler:
+Retrieves paths for images and icons, including support
+for executable builds created with PyInstaller.
+'''
+def resource_path(path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, path)
 
-# Data Layer
+'''
+Data Management Functions:
+Handles loading, saving, formatting, and ID generation.
+'''
+# Load Sales Records from JSON File.
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE) as f:
             return json.load(f)
     return []
 
+# Save Sales Records from JSON File.
 def save_data(records):
     with open(DATA_FILE, "w") as f:
         json.dump(records, f, indent=2)
 
+# Generate the Next Available Record ID.
 def next_id(records):
     return max((r["id"] for r in records), default=0) + 1
 
+# Format numbers as Philippine Peso Currency.
 def fmt_php(val):
     return f"₱{float(val):,.2f}"
 
-# Styled widgets
+'''
+Custom Widget Styling Functions:
+Creates reusable styled input fields and buttons.
+'''
+# Create a Styled Text Entry Field.
 def styled_entry(parent, width=22):
     e = tk.Entry(parent, font=FONT_INPUT, bg=CARD, fg=TEXT,
                  insertbackground=ACCENT, relief="flat",
@@ -100,6 +175,7 @@ def styled_entry(parent, width=22):
                  highlightcolor=ACCENT, width=width)
     return e
 
+# Create a Styled Button with Hover Effects.
 def styled_btn(parent, text, command, color=ACCENT, fg=BG, width=14):
     b = tk.Button(parent, text=text, command=command,
                   font=FONT_BTN, bg=color, fg=fg,
@@ -110,9 +186,16 @@ def styled_btn(parent, text, command, color=ACCENT, fg=BG, width=14):
     b.bind("<Leave>", lambda e: b.config(bg=color))
     return b
 
-
-# Main App
+'''
+Main Application Class:
+Controls the entire Sales Ledger GUI and functionality.
+'''
 class SalesApp(tk.Tk):
+
+    '''
+    Application Initialization:
+    Loads data, sets up window, and builds UI.
+    '''
     def __init__(self):
         super().__init__()
         self.title("SALES LEDGER")
@@ -120,7 +203,7 @@ class SalesApp(tk.Tk):
         self.geometry("1180x820")
         self.minsize(900, 700)
         try:
-            icon = tk.PhotoImage(file=resource_path("logo.png"))
+            icon = tk.PhotoImage(file=resource_path("logo1.png"))
             self.iconphoto(True, icon)
         except Exception:
             pass
@@ -136,14 +219,17 @@ class SalesApp(tk.Tk):
         self.refresh_stats()
         self.refresh_charts()
 
-    # ── Layout ──
+    '''
+    Main User Interface Layout:
+    Creates header, body, and main screen structure.
+    '''
     def _build_ui(self):
         # Header
         hdr = tk.Frame(self, bg=SURFACE, pady=16)
         hdr.pack(fill="x")
 
         try:
-            logo_img = Image.open(resource_path("logo1.png"))
+            logo_img = Image.open(resource_path("logo2.png"))
             logo_img = logo_img.resize((32, 32))
             self.logo = ImageTk.PhotoImage(logo_img)
             tk.Label(hdr, image=self.logo, bg=SURFACE).pack(side="left", padx=(28, 8))
@@ -165,6 +251,10 @@ class SalesApp(tk.Tk):
         self._build_left(body)
         self._build_right(body)
 
+    '''
+    Left Panel:
+    Contains search bar, sales table, and charts.
+    '''
     def _build_left(self, parent):
         left = tk.Frame(parent, bg=BG)
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
@@ -172,7 +262,7 @@ class SalesApp(tk.Tk):
         left.rowconfigure(2, weight=1)
         left.columnconfigure(0, weight=1)
 
-        # Search bar
+        # Search Bar
         sf = tk.Frame(left, bg=SURFACE, pady=8, padx=10)
         sf.grid(row=0, column=0, sticky="ew", pady=(0, 6))
         tk.Label(sf, text="SEARCH", font=FONT_LABEL,
@@ -219,13 +309,13 @@ class SalesApp(tk.Tk):
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
         self.tree.bind("<Delete>", lambda e: self.delete_record())
 
-        # ── Charts panel ──
+        # Charts Panel
         chart_outer = tk.Frame(left, bg=SURFACE)
         chart_outer.grid(row=2, column=0, sticky="nsew", pady=(8, 0))
         chart_outer.columnconfigure(0, weight=1)
         chart_outer.rowconfigure(1, weight=1)
 
-        # chart type toggle
+        # Chart Type Buttons
         ctrl = tk.Frame(chart_outer, bg=SURFACE, pady=4, padx=8)
         ctrl.grid(row=0, column=0, sticky="ew")
         tk.Label(ctrl, text="CHARTS", font=FONT_LABEL,
@@ -244,20 +334,21 @@ class SalesApp(tk.Tk):
                                 cursor="hand2")
             rb.pack(side="left", padx=4)
 
-        # Fixed figure size — TkAgg manages the canvas pixel dimensions automatically.
-        # Never call set_size_inches in a resize handler; it fires with near-zero
-        # values before Tk finishes layout and permanently corrupts the figure.
         self._fig = plt.figure(facecolor=BG, figsize=(8, 2.8), dpi=100)
         self._ax  = self._fig.add_subplot(111)
         self._canvas = FigureCanvasTkAgg(self._fig, master=chart_outer)
         self._canvas.get_tk_widget().grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
 
+    '''
+    Right Panel:
+    Contains summary statistics and record form.
+    '''
     def _build_right(self, parent):
         right = tk.Frame(parent, bg=BG)
         right.grid(row=0, column=1, sticky="nsew")
         right.columnconfigure(0, weight=1)
 
-        # Stats
+        # Statistics
         stats_frame = tk.Frame(right, bg=SURFACE, padx=12, pady=10)
         stats_frame.pack(fill="x", pady=(0, 10))
         tk.Label(stats_frame, text="SUMMARY", font=FONT_LABEL,
@@ -266,7 +357,7 @@ class SalesApp(tk.Tk):
         self.stat_sales = self._stat_card(stats_frame, "TRANSACTIONS", "0", SUCCESS)
         self.stat_top   = self._stat_card(stats_frame, "TOP PRODUCT", "—", ACCENT2)
 
-        # Form
+        # Text Forms
         form_frame = tk.Frame(right, bg=SURFACE, padx=14, pady=14)
         form_frame.pack(fill="x")
         tk.Label(form_frame, text="ADD / EDIT RECORD", font=FONT_LABEL,
@@ -298,6 +389,10 @@ class SalesApp(tk.Tk):
 
         self._entries["date"].insert(0, datetime.today().strftime("%Y-%m-%d"))
 
+    '''
+    Statistic Card Creator:
+    Creates reusable summary cards.
+    '''
     def _stat_card(self, parent, label, value, color):
         f = tk.Frame(parent, bg=CARD, padx=10, pady=8)
         f.pack(fill="x", pady=3)
@@ -306,11 +401,12 @@ class SalesApp(tk.Tk):
         lbl.pack(anchor="w")
         return lbl
 
-    # ── Charts ──
+    '''
+    Chart Management Section:
+    Handles chart creation and visualization updates.
+    '''
+    # Refresh Currently Selected Chart.
     def refresh_charts(self):
-        # clf() + add_subplot() gives a truly clean axes each time.
-        # ax.clear() alone leaves pie chart state (equal aspect, transforms)
-        # that breaks bar/line charts when switching back.
         self._fig.clf()
         self._ax = self._fig.add_subplot(111)
         mode = self._chart_mode.get()
@@ -334,6 +430,11 @@ class SalesApp(tk.Tk):
 
         self._canvas.draw_idle()
 
+    '''
+    Revenue Chart:
+    Displays monthly revenue trends.
+    '''
+     # Group Revenue by Month
     def _draw_revenue_chart(self):
         # Group revenue by month
         by_month = defaultdict(float)
@@ -354,11 +455,11 @@ class SalesApp(tk.Tk):
         x = range(len(months))
         bars = self._ax.bar(x, values, color=ACCENT, alpha=0.85, width=0.6, zorder=3)
 
-        # Line overlay
+        # Line Overlay
         self._ax.plot(list(x), values, color=ACCENT3, linewidth=1.5,
                       marker="o", markersize=4, zorder=4)
 
-        # Value labels on bars
+        # Value Labels on Bars
         for bar, val in zip(bars, values):
             self._ax.text(bar.get_x() + bar.get_width() / 2,
                           bar.get_height() + max(values) * 0.02,
@@ -373,6 +474,10 @@ class SalesApp(tk.Tk):
         self._ax.grid(axis="y", zorder=0)
         self._ax.set_axisbelow(True)
 
+    '''
+    Category Pie Chart:
+    Shows revenue distribution by category.
+    '''
     def _draw_category_chart(self):
         by_cat = defaultdict(float)
         for r in self.records:
@@ -401,6 +506,10 @@ class SalesApp(tk.Tk):
 
         self._ax.set_title("Revenue by Category", color=TEXT)
 
+    '''
+    Top Products Chart:
+    Displays highest earning products.
+    '''
     def _draw_top_products_chart(self):
         by_prod = defaultdict(float)
         for r in self.records:
@@ -409,12 +518,12 @@ class SalesApp(tk.Tk):
         if not by_prod:
             return
 
-        # Top 8 products
+        # Top Products
         sorted_prods = sorted(by_prod.items(), key=lambda x: x[1], reverse=True)[:8]
         labels = [p[0][:20] + ("…" if len(p[0]) > 20 else "") for p in sorted_prods]
         values = [p[1] for p in sorted_prods]
 
-        # Horizontal bar chart
+        # Horizontal Bar Chart
         palette = [ACCENT, ACCENT3, SUCCESS, ACCENT2,
                    "#a78bfa", "#fb923c", "#34d399", "#60a5fa"]
         colors = [palette[i % len(palette)] for i in range(len(labels))]
@@ -438,7 +547,11 @@ class SalesApp(tk.Tk):
         self._ax.grid(axis="x", zorder=0)
         self._ax.set_axisbelow(True)
 
-    # ── Table ops ──
+    '''
+    Table Management Section:
+    Handles displaying and interacting with records.
+    '''
+    # Update Table Contents and Apply Search Filter.    
     def refresh_table(self, *_):
         query = self._search_var.get().lower()
         self.tree.delete(*self.tree.get_children())
@@ -451,6 +564,7 @@ class SalesApp(tk.Tk):
             tag = "alt" if i % 2 else ""
             self.tree.insert("", "end", iid=str(r["id"]), values=vals, tags=(tag,))
 
+    # Update Summary Statistics.
     def refresh_stats(self):
         total = sum(float(r["qty"]) * float(r["price"]) for r in self.records)
         self.stat_total.config(text=fmt_php(total))
@@ -464,6 +578,7 @@ class SalesApp(tk.Tk):
         else:
             self.stat_top.config(text="—")
 
+    # Load Selected Record into Form Fields.
     def _on_select(self, _event=None):
         sel = self.tree.selection()
         if not sel:
@@ -480,6 +595,11 @@ class SalesApp(tk.Tk):
             e.delete(0, "end")
             e.insert(0, mapping[k])
 
+    '''
+    Form Validation Section:
+    Ensures user input is valid before processing.
+    '''
+    # Validate and Retrieve Form Data.
     def _get_form(self):
         try:
             date     = self._entries["date"].get().strip()
@@ -498,11 +618,25 @@ class SalesApp(tk.Tk):
             messagebox.showerror("Invalid Input", str(ex))
             return None
 
+    '''
+    CRUD Operations:
+    Create, Read, Update, and Delete sales records.
+    '''
+    # Add a New Sales Record.
     def add_record(self):
         d = self._get_form()
         if not d:
             return
         date, customer, product, category, qty, price = d
+        for r in self.records:
+            if (r["date"] == date and
+                r["customer"].lower() == customer.lower() and
+                r["product"].lower() == product.lower()):
+                messagebox.showwarning(
+            "Duplicate Record",
+            "This sales record already exists."
+                )
+                return
         rec = {"id": next_id(self.records), "date": date,
                "customer": customer, "product": product,
                "category": category, "qty": qty, "price": price}
@@ -514,6 +648,7 @@ class SalesApp(tk.Tk):
         self.clear_form()
         self._flash_status(f"Record #{rec['id']} added.")
 
+    # Update the Selected Sales Record.
     def update_record(self):
         if self.selected_id is None:
             messagebox.showwarning("No Selection", "Select a row to update.")
@@ -521,6 +656,13 @@ class SalesApp(tk.Tk):
         d = self._get_form()
         if not d:
             return
+
+        if not messagebox.askyesno(
+            "Confirm Update",
+            "Are you sure you want to update this record?"
+        ):
+            return
+
         _, customer, product, category, qty, price = d
         date = datetime.today().strftime("%Y-%m-%d")
         for r in self.records:
@@ -534,6 +676,7 @@ class SalesApp(tk.Tk):
         self.refresh_charts()
         self._flash_status(f"Record #{self.selected_id} updated.")
 
+    # Delete the Selected Sales Record.
     def delete_record(self):
         if self.selected_id is None:
             messagebox.showwarning("No Selection", "Select a row to delete.")
@@ -549,6 +692,11 @@ class SalesApp(tk.Tk):
         self.refresh_charts()
         self._flash_status("Record deleted.")
 
+    '''
+    Form Utilities:
+    Handles clearing and resetting form fields.
+    '''
+    # Reset Form Fields and Clear Selection.
     def clear_form(self):
         self.selected_id = None
         for e in self._entries.values():
@@ -556,6 +704,7 @@ class SalesApp(tk.Tk):
         self._entries["date"].insert(0, datetime.today().strftime("%Y-%m-%d"))
         self.tree.selection_remove(*self.tree.selection())
 
+    # Export Sales Records to a CSV File.
     def export_csv(self):
         path = filedialog.asksaveasfilename(
             defaultextension=".csv",
@@ -572,6 +721,7 @@ class SalesApp(tk.Tk):
                              float(r["qty"]) * float(r["price"])])
         messagebox.showinfo("Exported", f"Saved to:\n{path}")
 
+    # Sort Table Data by Selected Column.
     def _sort_by(self, col):
         col_map = {"ID":"id","Date":"date","Customer":"customer","Product":"product",
                    "Category":"category","Qty":"qty","Unit Price":"price","Total":"total"}
@@ -584,6 +734,11 @@ class SalesApp(tk.Tk):
             self.records.sort(key=lambda r: str(r.get(key, "")).lower())
         self.refresh_table()
 
+    '''
+    Status Notifications:
+    Displays temporary success messages.
+    '''
+    # Show a Temporary Status Message.
     def _flash_status(self, msg):
         if not hasattr(self, "_status_lbl"):
             self._status_lbl = tk.Label(self, text="", font=FONT_LABEL,
@@ -592,8 +747,10 @@ class SalesApp(tk.Tk):
         self._status_lbl.pack(side="bottom", fill="x")
         self.after(2500, lambda: self._status_lbl.pack_forget())
 
-
-# Seed demo data if empty
+'''
+Demo Data Generator:
+Creates sample records when no data file exists.
+'''
 def seed_demo():
     if os.path.exists(DATA_FILE):
         return
@@ -606,6 +763,10 @@ def seed_demo():
     ]
     save_data(demo)
 
+'''
+Application Entry Point:
+Starts the program when executed directly.
+'''
 if __name__ == "__main__":
     seed_demo()
     app = SalesApp()
