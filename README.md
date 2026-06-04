@@ -33,6 +33,3 @@ Group Members
 - Mark Daniel Abellar (Software Developer)
 - Aaron Gregorio Tamayo (Client)
 - Steve Ligson (Quality Assurance Specialist)
-- Mark Daniel Abellar (Software Developer)
-- Aaron Gregorio Tamayo (Client)
-- Steve Ligson (Quality Assurance Specialist)
