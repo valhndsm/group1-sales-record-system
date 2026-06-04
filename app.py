@@ -170,6 +170,13 @@ class SalesApp(tk.Tk):
                                     "Are you sure you want to update this record?"):
             return
         for r in self.records:
+            if (r["date"] == date
+                    and r["customer"].lower() == customer.lower()
+                    and r["product"].lower()  == product.lower()):
+                messagebox.showwarning(
+                    "Duplicate Record",
+                    "This sales record already exists.",
+                )
             if r["id"] == self.selected_id:
                 r.update(
                     date=date, customer=customer, product=product,
